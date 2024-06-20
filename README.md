@@ -18,4 +18,8 @@ In this guide we will build a Call Centre Analytics solution built for analyzing
 
 ## Step-By-Step Guide
 
-For prerequisites, environment setup, step-by-step guide and instructions, please refer to the [QuickStart Guide](https://quickstarts.snowflake.com/guide/call_centre_analytics_with_snowflake_cortex_and_spcs/index.html).
+1. Execute SetupSnowflake.sql (this will build your base Snowflake environment)
+2. Open and run audio2text_setup_code.jpynb (Jupyter notebook - be sure to read & follow inline instructions!)
+3. Open and run AudioAnalytics.jpynb (Jupyter notebook - be sure to read & follow inline instructions!)
+4. Open and run text2sql_setup_code.jpynb (Jupyter notebook - be sure to read & follow inline instructions!)
+5. Open and run streamlit_setup_code.jpynb (Jupyter notebook - be sure to read & follow inline instructions!)

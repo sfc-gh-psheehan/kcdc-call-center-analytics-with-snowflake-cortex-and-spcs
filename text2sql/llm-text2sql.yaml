@@ -9,9 +9,9 @@ spec:
       SNOWFLAKE_MOUNTED_STAGE_PATH: /notebooks/llm-workspace
     resources:                           
         requests:
-          nvidia.com/gpu: 2
+          nvidia.com/gpu: 1
         limits:
-          nvidia.com/gpu: 2
+          nvidia.com/gpu: 1
   endpoint:
   - name: llm-audio-ep
     port: 8888

@@ -1,8 +1,8 @@
-# Call Centre Analytics with Snowflake Cortex LLM and Snowpark Container Services
+# Call Center Analytics with Snowflake Cortex LLM and Snowpark Container Services
 
 ## Overview
 
-In this guide we will build a Call Centre Analytics solution built for analyzing insurance call center audio files. Leveraging Snowflake features like cortex, large language model running in Snowpark containers, we transcribes text and duration from audiofile,extracts essential information such as Customer details, Agent interactions, Sentiment analysis, Summary, Resolution from each audio call to name a few. Here are key highlights and features of the solution :
+In this guide we will build a Call Center Analytics solution built for analyzing insurance call center audio files. Leveraging Snowflake features like cortex, large language model running in Snowpark containers, we transcribes text and duration from audiofile,extracts essential information such as Customer details, Agent interactions, Sentiment analysis, Summary, Resolution from each audio call to name a few. Here are key highlights and features of the solution :
 
 * Whisper running in Snowpark Containers to Extract Text and Duration of the call from the audio files.
 

@@ -1,98 +1,109 @@
-CREATE STAGE IF NOT EXISTS WHISPER_APP ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE') DIRECTORY = (ENABLE = TRUE);
+/* Cleanup
+USE ROLE SPCS_PSE_ROLE;
+DROP DATABASE LLMDEMO;
+USE ROLE ACCOUNTADMIN;
+ALTER COMPUTE POOL PR_GPU_S STOP ALL;
+ALTER COMPUTE POOL PR_GPU_7 STOP ALL;
+ALTER COMPUTE POOL PR_AudioAnalytics_Pool STOP ALL;
+DROP COMPUTE POOL PR_GPU_S;
+DROP COMPUTE POOL PR_GPU_7;
+DROP COMPUTE POOL PR_AudioAnalytics_Pool;
+DROP WAREHOUSE small_warehouse;
+DROP SECURITY INTEGRATION snowservices_ingress_oauth;
+DROP ROLE SPCS_PSE_ROLE;
+DROP EXTERNAL ACCESS INTEGRATION allow_all_eai;
+*/
 
-CREATE STAGE IF NOT EXISTS AUDIO_FILES ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE') DIRECTORY = (ENABLE = TRUE);
+-- Set up environment
+-- First, roles and warehouse
+USE ROLE ACCOUNTADMIN;
 
-CREATE STAGE IF NOT EXISTS SPECS ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE') DIRECTORY = (ENABLE = TRUE);
+CREATE OR REPLACE ROLE SPCS_PSE_ROLE;
+CREATE OR REPLACE DATABASE LLMDemo;
 
-CREATE COMPUTE POOL PR_GPU_3
-MIN_NODES = 1 
-MAX_NODES = 1 
-INSTANCE_FAMILY = GPU_NV_S 
-AUTO_RESUME = FALSE;
+CREATE OR REPLACE WAREHOUSE small_warehouse WITH
+  WAREHOUSE_SIZE='X-SMALL';
+GRANT USAGE ON WAREHOUSE small_warehouse TO ROLE SPCS_PSE_ROLE;
 
-ALTER compute pool PR_GPU_3 RESUME;
+-- Second, create our security integration
+CREATE SECURITY INTEGRATION IF NOT EXISTS snowservices_ingress_oauth
+  TYPE=oauth
+  OAUTH_CLIENT=snowservices_ingress
+  ENABLED=true;
 
--- Upload the whisper_spec.yml to @specs stage before creating the service
-CREATE SERVICE Whisper_Audio_text_SVC
-  IN COMPUTE POOL PR_GPU_3
-  FROM @specs
-  SPEC='whisper_spec.yml'
-  MIN_INSTANCES=1
-  MAX_INSTANCES=1;
+-- Third, create our compute pools for use w/ models  
+CREATE COMPUTE POOL IF NOT EXISTS PR_GPU_S
+    MIN_NODES = 1 
+    MAX_NODES = 1 
+    INSTANCE_FAMILY = GPU_NV_S 
+    AUTO_RESUME = FALSE
+    INITIALLY_SUSPENDED = FALSE
+        COMMENT = 'For Audio2text';
 
---Check the status of the service
-SELECT SYSTEM$GET_SERVICE_STATUS('Whisper_Audio_text_SVC',1);
+CREATE COMPUTE POOL IF NOT EXISTS PR_GPU_7
+    MIN_NODES = 1
+    MAX_NODES = 1
+    INSTANCE_FAMILY = GPU_NV_S
+    AUTO_RESUME = FALSE
+    INITIALLY_SUSPENDED = FALSE
+        COMMENT = 'For text2sql';
 
--- Check the log for the service
-SELECT value AS log_line
-FROM TABLE(
- SPLIT_TO_TABLE(SYSTEM$GET_SERVICE_LOGS('Whisper_Audio_text_SVC', 0, 'audio-whisper-app'), '\n')
-  );
+CREATE COMPUTE POOL IF NOT EXISTS PR_AudioAnalytics_Pool
+    MIN_NODES = 1
+    MAX_NODES = 1
+    INSTANCE_FAMILY = CPU_X64_XS
+    AUTO_RESUME = TRUE
+    AUTO_SUSPEND_SECS = 3600
+    INITIALLY_SUSPENDED = FALSE
+        COMMENT = 'For Running Audio Analytics Streamlit App';
 
-/*
-Below queries are creating the service function
- */
+-- Fourth, network rules for egress 
+-- (in this demo we are opening egress all - typically you would want to narrow this down to a specific address)
+CREATE OR REPLACE NETWORK RULE allow_all_rule
+    TYPE = 'HOST_PORT'
+    MODE= 'EGRESS'
+    VALUE_LIST = ('0.0.0.0:443','0.0.0.0:80');
 
- -- Function to get duration of the audio files
-CREATE OR REPLACE FUNCTION DURATION(AUDIO_FILE TEXT)
-RETURNS VARIANT
-SERVICE=Whisper_Audio_text_SVC
-ENDPOINT=API
-AS '/audio-duration';
+CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION allow_all_eai
+  ALLOWED_NETWORK_RULES = (allow_all_rule)
+  ENABLED = true;
 
--- Function to detect language from audio file
-CREATE OR REPLACE FUNCTION DETECT_LANGUAGE(AUDIO_FILE TEXT, ENCODE BOOLEAN)
-RETURNS VARIANT
-SERVICE=Whisper_Audio_text_SVC
-ENDPOINT=API
-AS '/detect-language';
+-- Fifth, apply grants to our new role
+GRANT BIND SERVICE ENDPOINT ON ACCOUNT TO ROLE SPCS_PSE_ROLE;
 
--- Function to transcribe audio files
-CREATE OR REPLACE FUNCTION TRANSCRIBE(TASK TEXT, LANGUAGE TEXT, AUDIO_FILE TEXT, ENCODE BOOLEAN)
-RETURNS VARIANT
-SERVICE=Whisper_Audio_text_SVC
-ENDPOINT=API
-AS '/asr';
+GRANT USAGE ON INTEGRATION allow_all_eai TO ROLE SPCS_PSE_ROLE;
 
-CREATE or REPLACE TABLE ALL_CLAIMS_RAW (
-	DATETIME DATE,
-	AUDIOFILE VARCHAR(16777216),
-	CONVERSATION VARCHAR(16777216),
-	PRESIGNED_URL_PATH VARCHAR(16777216),
-	DURATION FLOAT NOT NULL
-);
+GRANT USAGE, MONITOR ON COMPUTE POOL PR_GPU_S TO ROLE SPCS_PSE_ROLE;
 
-/*
-If you don't have the audio files and want to play with the demo then run load the audio_sample.csv file
-into the table created above. You can use PUT or Snowsight to load the csv to the above created table(ALL_CLAIMS_RAW)
- */ 
+GRANT USAGE, MONITOR ON COMPUTE POOL PR_GPU_7 TO ROLE SPCS_PSE_ROLE;
 
+GRANT USAGE, MONITOR ON COMPUTE POOL PR_AudioAnalytics_Pool TO ROLE SPCS_PSE_ROLE;
 
+GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE SPCS_PSE_ROLE;
 
+GRANT ROLE SPCS_PSE_ROLE TO USER psheehan;
 
-/*
+GRANT OWNERSHIP ON DATABASE LLMDemo TO ROLE SPCS_PSE_ROLE COPY CURRENT GRANTS;
 
-Run the below command only if you have audio files.
+GRANT OWNERSHIP ON ALL SCHEMAS IN DATABASE LLMDemo  TO ROLE SPCS_PSE_ROLE COPY CURRENT GRANTS;
 
-INSERT INTO ALL_CLAIMS_RAW
-(
-DATETIME,
-AUDIOFILE,
-PRESIGNED_URL_PATH,
-CONVERSATION,
-DURATION
-)
-SELECT CAST(CASE WHEN split(RELATIVE_PATH,'/')[1]::string IS NULL THEN GETDATE() 
-            ELSE split(RELATIVE_PATH,'/')[0]::string END AS DATE) as Datetime, 
-        CASE WHEN split(RELATIVE_PATH,'/')[1]::string is null then split(RELATIVE_PATH,'/')[0]::string 
-            ELSE split(RELATIVE_PATH,'/')[1]::string END as RELATIVE_PATH,
-       GET_PRESIGNED_URL('@AUDIO_FILES', RELATIVE_PATH) AS PRESIGNED_URL
-       -- ,DETECT_LANGUAGE(PRESIGNED_URL,TRUE) as DETECT_LANGUAGE
-       ,TRANSCRIBE('transcribe','',PRESIGNED_URL,True)['text']::string AS EXTRACTED_TEXT
-       ,DURATION(PRESIGNED_URL):call_duration_seconds::DOUBLE as CALL_DURATION_SECONDS
-FROM DIRECTORY('@AUDIO_FILES');
+GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE SPCS_PSE_ROLE;
 
- */
+-- Sixth, change context and build our image repository
+USE ROLE SPCS_PSE_ROLE;
+USE DATABASE LLMDemo;
+USE WAREHOUSE small_warehouse;
+USE SCHEMA PUBLIC;
 
+CREATE IMAGE REPOSITORY IF NOT EXISTS IMAGES;
 
+-- CHECK THE IMAGE RESGITRY URL
+SHOW IMAGE REPOSITORIES;
 
+-- Note the output for the above query; we will be using the <orgname>-<acctname> portion:
+-- <orgname>-<acctname>.registry.snowflakecomputing.com/llmdemo/public/images
+
+--USE ROLE ACCOUNTADMIN;
+--ALTER COMPUTE POOL PR_GPU_7 RESUME;
+--ALTER SERVICE llama_text2sql_svc RESUME;
+--RM @specs;

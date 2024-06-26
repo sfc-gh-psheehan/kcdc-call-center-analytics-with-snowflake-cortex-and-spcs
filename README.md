@@ -23,4 +23,4 @@ In this guide we will build a Call Center Analytics solution built for analyzing
 5. Open and run 4. Streamlit\streamlit_setup_code.jpynb (Jupyter notebook - be sure to read & follow inline instructions!)
 
 ## Tear-down, post build
-Execute 1. Snowflake\cleanup.sql (this will drop all objects)
+Execute 1. Snowflake\teardown.sql (this will drop all objects)

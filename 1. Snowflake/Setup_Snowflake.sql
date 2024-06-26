@@ -20,14 +20,17 @@ CREATE COMPUTE POOL IF NOT EXISTS PR_GPU_S
     MIN_NODES = 1 
     MAX_NODES = 1 
     INSTANCE_FAMILY = GPU_NV_S 
-    AUTO_RESUME = FALSE
+    AUTO_RESUME = TRUE
+    AUTO_SUSPEND_SECS = 3600
+    INITIALLY_SUSPENDED = FALSE
         COMMENT = 'For Audio2text';
 
 CREATE COMPUTE POOL IF NOT EXISTS PR_GPU_7
     MIN_NODES = 1
     MAX_NODES = 1
     INSTANCE_FAMILY = GPU_NV_M
-    AUTO_RESUME = FALSE
+    AUTO_RESUME = TRUE
+    AUTO_SUSPEND_SECS = 3600
     INITIALLY_SUSPENDED = FALSE
         COMMENT = 'For text2sql';
 
@@ -82,6 +85,3 @@ CREATE IMAGE REPOSITORY IF NOT EXISTS IMAGES;
 
 -- CHECK THE IMAGE RESGITRY URL
 SHOW IMAGE REPOSITORIES;
-
--- Note the output for the above query; we will be using the <orgname>-<acctname> portion:
--- <orgname>-<acctname>.registry.snowflakecomputing.com/llmdemo/public/images

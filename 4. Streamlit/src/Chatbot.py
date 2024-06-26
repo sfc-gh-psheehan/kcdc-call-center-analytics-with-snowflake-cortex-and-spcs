@@ -53,7 +53,7 @@ def chatbot(session:Session):
         prompt = re.sub("'", "''", prompt)
         return prompt
 
-    model = st.selectbox("Hello, I'm the Snowflake Cortex Vehicle Insurance AI Assistant based on Llama v2. Please choose the model you'd like to use:", options = ['llama2-70b-chat','llama2-7b-chat'])
+    model = st.selectbox("Hello, I'm the Snowflake Cortex Vehicle Insurance AI Assistant based on Llama v2. Please choose the model you'd like to use:", options = ['llama2-70b-chat'])
 
     def get_context(question):
         sql_stmt = f''' with top_response as ( select AUDIO_DATA, vector_cosine_distance(ct_embedding ,SNOWFLAKE.CORTEX.embed_text('e5-base-v2',

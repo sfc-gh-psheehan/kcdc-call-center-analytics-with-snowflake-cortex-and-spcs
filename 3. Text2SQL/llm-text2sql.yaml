@@ -1,7 +1,7 @@
 spec:
   container:  
   - name: text2sql-container
-    image: sfsenorthamerica-demo-psheehan.registry.snowflakecomputing.com/llmdemo/public/images/audiollm:latest
+    image: ORGNAME-ACCTNAME.registry.snowflakecomputing.com/llmdemo/public/images/audiollm:latest
     volumeMounts: 
     - name: llm-workspace
       mountPath: /notebooks/llm-workspace

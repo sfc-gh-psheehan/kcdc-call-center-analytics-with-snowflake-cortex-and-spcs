@@ -2,17 +2,14 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import json
-# import pydeck as pdk
+
 import datetime
 import math
 import time
-# import seaborn as sns
-# import matplotlib.pyplot as plt
+
 import plotly.express as px
 
-# import pyecharts.options as opts
-# from pyecharts.charts import Line, Bar, EffectScatter
-# from pyecharts.globals import SymbolType
+
 from snowflake.snowpark.session import Session
 import snowflake.snowpark.functions as F
 
@@ -30,7 +27,7 @@ def analytics_main(session:Session):
     with d_col1:
         min_date = datetime.datetime(2023,12,1)
         s_date = st.date_input("Start date", min_date, key='s_date')
-        # s_date = st.date_input("Start date",  key='s_date')
+
     with d_col2:
         e_date = st.date_input("End date",  key='e_date')
 
@@ -55,9 +52,7 @@ def analytics_main(session:Session):
             topic_df = load_data(get_topic_info(s_date,e_date))
             topic_types_df = topic_df["NAME"]
             topic_counts_df = topic_df["VALUE"]
-            # st.markdown("<h3 style='text-align: left; color: black;'>Unique Summary Topics</h3>", unsafe_allow_html=True)
 
-            # st.subheader("Unique Summary Topics")
             fig = px.pie(values=topic_counts_df, names=topic_types_df,title=" ")
             fig.update_layout(legend=dict(orientation="v",yanchor = "bottom",y= 0.1, xanchor="left", x=1),title_x=0.35)
             fig.update_layout(
@@ -75,9 +70,7 @@ def analytics_main(session:Session):
     )
             st.plotly_chart(fig)
         with col22:
-            # st.markdown("<h3 style='text-align: left; color: black;'>Unique Call Intents</h3>", unsafe_allow_html=True)
 
-            # st.subheader("Call Intent")
             topic_df = load_data(get_call_intent(s_date,e_date))
             topic_types_df = topic_df["NAME"]
             topic_counts_df = topic_df["VALUE"]
@@ -131,7 +124,7 @@ def analytics_main(session:Session):
         df_mou=load_data(extract_audio_info(s_date,e_date))
         res=df_mou.groupby(['FIRST_CALL_RESOLUTION','YEAR_MONTH']).agg({'REPRESENTATIVE_NAME':'count'})
         res=res.reset_index()
-        # res['mode']=res.apply(mode, axis=1)
+
         fig = px.bar(res, x='YEAR_MONTH', y='REPRESENTATIVE_NAME', color='FIRST_CALL_RESOLUTION', barmode='group',
              labels={'REPRESENTATIVE_NAME': 'Total Count'})
 

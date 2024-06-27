@@ -5,22 +5,22 @@ import re
 
 def chatbot(session:Session):
 
-    st.subheader("Call Centre Insurance Assistant - RAG based approach")
+    st.subheader("Call Center Insurance Assistant - RAG based approach")
 
     with st.expander("ℹ️ Instructions",expanded=True):
         st.markdown(
             """
             Enter your prompt and the app will retrieve the relevant data from the database and use it as augmented context for the LLM.
             
-            **Examples that you can use:**
+            **Examples:**
 
-            1. give me the call details for the agent Quinn where the sentiment is negative in the month december 2023.
+            1. Give me the call details for the agent Quinn where the sentiment is negative in the month december 2023.
 
-            2. Will you rate the conversation on the policy number POL345678 happened on 2023-12-09 as a first call resolution ?
+            2. Rate the conversation on the policy number POL345678 that happened on 2023-12-09 as a first call resolution.
 
-            3. why is the call sentiment negative for the conversation on the policy number POL345678 happened on 2023-12-09
+            3. Why is the call sentiment negative for the conversation on policy number POL345678 that happened on 2023-12-09?
 
-            4. what can be done to improve the call sentiment for the conversation on the policy number POL345678 happened on 2023-12-09
+            4. What can be done to improve the call sentiment for the conversation on policy number POL345678 that happened on 2023-12-09?
 
             """
         )

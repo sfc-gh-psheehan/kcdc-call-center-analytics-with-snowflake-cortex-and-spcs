@@ -5,22 +5,21 @@ import re
 
 def chatbot(session:Session):
 
-    st.subheader("Call Centre Insurance Assistant - Text2SQL")
+    st.subheader("Call Center Insurance Assistant - Text2SQL")
 
     with st.expander("ℹ️ Instructions",expanded=True):
         st.markdown(
             """
-            You can input your question as natural language text and the chatbot will return you the output as a table ! 
-            Shows you on how to use your own co-pilot from the app.
-            
-            **Examples that you can use:**
+            Input your questions as natural language text and the chatbot will return your output as a table! 
+                       
+            **Examples:**
 
-            1. Give me count of records for every resolution
-            2. Give me rows with the claim number CLM456789
-            3. Give me all rows where purpose of call like policy inquiry in the month december 2023
-            4. Give the sum of callduration for every representative where the response mode is Resolved
-            5. list the unique issues handled by the representatives name starting with emma in November and end of December 2023
-            6. what is the sum of call duration for every representative and for every resolution
+            1. Give me count of records for every resolution.
+            2. Give me rows with the claim number CLM456789.
+            3. Give me all rows where purpose of call like policy inquiry in the month december 2023.
+            4. Give the sum of callduration for every representative where the response mode is Resolved.
+            5. List the unique issues handled by the representatives name starting with emma in November and end of December 2023.
+            6. what is the sum of call duration for every representative and for every resolution?
 
             """
         )

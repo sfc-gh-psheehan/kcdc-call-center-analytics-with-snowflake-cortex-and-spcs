@@ -230,7 +230,7 @@ def analytics_main(session:Session):
                     with st.spinner("Getting Policy Info.."):
                         cl_df=session.table("AutoClaims").filter(F.col('ClaimID')==claim_number)
                         pol_df=session.table("PolicyDetails")
-                        pol_number=cl_df.join(pol_df,pol_df.POLICYID==cl_df.POLICYID).select(pol_df.POLICYNUMBER).collect()[1]['POLICYNUMBER']
+                        pol_number=cl_df.join(pol_df,pol_df.POLICYID==cl_df.POLICYID).select(pol_df.POLICYNUMBER).collect()[0]['POLICYNUMBER']
                         st.subheader("Policy Details")
                         st.dataframe(pol_df.filter(F.col('POLICYNUMBER')==pol_number))
                         reset_callback()

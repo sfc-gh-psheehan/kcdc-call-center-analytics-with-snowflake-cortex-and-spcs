@@ -2,28 +2,19 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import json
-# import pydeck as pdk
 import datetime
 import math
 import time
-# import seaborn as sns
-# import plotly.express as px
 
 from snowflake.snowpark import Session
 import snowflake.snowpark.functions as F
 import snowflake.connector
 
 
-# from streamlit_echarts import st_echarts
-# from streamlit_echarts import st_pyecharts
 from decimal import *
 from streamlit_option_menu import option_menu
-# from geopy.geocoders import Nominatim
 from snowflake.connector.pandas_tools import write_pandas
 from snowflake.snowpark.types import DecimalType
-
-
-#
 
 import datetime
 
@@ -35,8 +26,6 @@ from Text2SQLChatbot import chatbot as text_cb
 from aboutapp import appinfo
 
 import os
-
-# from session_connectivity import create_session_object
 
 # Environment variables below will be automatically populated by Snowflake.
 SNOWFLAKE_ACCOUNT = os.getenv("SNOWFLAKE_ACCOUNT")

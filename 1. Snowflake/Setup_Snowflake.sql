@@ -9,13 +9,7 @@ CREATE OR REPLACE WAREHOUSE small_warehouse WITH
   WAREHOUSE_SIZE='X-SMALL';
 GRANT USAGE ON WAREHOUSE small_warehouse TO ROLE SPCS_PSE_ROLE;
 
--- Second, create our security integration
-CREATE SECURITY INTEGRATION IF NOT EXISTS snowservices_ingress_oauth
-  TYPE=oauth
-  OAUTH_CLIENT=snowservices_ingress
-  ENABLED=true;
-
--- Third, create our compute pools for use w/ models  
+-- Second, create our compute pools for use w/ models  
 CREATE COMPUTE POOL IF NOT EXISTS PR_GPU_S
     MIN_NODES = 1 
     MAX_NODES = 1 
@@ -43,7 +37,7 @@ CREATE COMPUTE POOL IF NOT EXISTS PR_AudioAnalytics_Pool
     INITIALLY_SUSPENDED = FALSE
         COMMENT = 'For Running Audio Analytics Streamlit App';
 
--- Fourth, network rules for egress 
+-- Third, network rules for egress 
 -- (in this demo we are opening egress all - typically you would want to narrow this down to a specific address)
 CREATE OR REPLACE NETWORK RULE allow_all_rule
     TYPE = 'HOST_PORT'
@@ -54,7 +48,7 @@ CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION allow_all_eai
   ALLOWED_NETWORK_RULES = (allow_all_rule)
   ENABLED = true;
 
--- Fifth, apply grants to our new role
+-- Fourth, apply grants to our new role
 GRANT BIND SERVICE ENDPOINT ON ACCOUNT TO ROLE SPCS_PSE_ROLE;
 
 GRANT USAGE ON INTEGRATION allow_all_eai TO ROLE SPCS_PSE_ROLE;
@@ -76,7 +70,7 @@ GRANT OWNERSHIP ON ALL SCHEMAS IN DATABASE LLMDemo  TO ROLE SPCS_PSE_ROLE COPY C
 
 GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE SPCS_PSE_ROLE;
 
--- Sixth, change context and build our image repository
+-- Fifth, change context and build our image repository
 USE ROLE SPCS_PSE_ROLE;
 USE DATABASE LLMDemo;
 USE WAREHOUSE small_warehouse;
